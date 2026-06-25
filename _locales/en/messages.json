@@ -1,0 +1,44 @@
+{
+  "appName": { "message": "AI Chat Bulk Deleter" },
+  "appDesc": { "message": "Batch delete conversations on ChatGPT and Gemini from the web UI with preview, selection, pause and stop controls." },
+  "scan": { "message": "Scan" },
+  "selectAll": { "message": "Select all" },
+  "clear": { "message": "Clear" },
+  "deleteSelected": { "message": "Delete selected" },
+  "deleteSelectedCount": {
+    "message": "Delete selected ($count$)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "pause": { "message": "Pause" },
+  "resume": { "message": "Resume" },
+  "stop": { "message": "Stop" },
+  "close": { "message": "Close" },
+  "noScanned": { "message": "No conversations scanned." },
+  "foundCount": {
+    "message": "$count$ conversation(s) found.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "deleting": {
+    "message": "Deleting $count$ selected conversation(s)...",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "rescanned": { "message": "Rescanned." },
+  "paused": { "message": "Paused." },
+  "resumed": { "message": "Resumed." },
+  "stopping": { "message": "Stopping..." },
+  "stoppedAt": {
+    "message": "Stopped at $current$/$total$.",
+    "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } }
+  },
+  "done": {
+    "message": "Done. deleted=$deleted$ failed=$failed$ skipped=$skipped$",
+    "placeholders": { "deleted": { "content": "$1" }, "failed": { "content": "$2" }, "skipped": { "content": "$3" } }
+  },
+  "logLine": {
+    "message": "[$index$/$total$] $status$: $title$",
+    "placeholders": { "index": { "content": "$1" }, "total": { "content": "$2" }, "status": { "content": "$3" }, "title": { "content": "$4" } }
+  },
+  "statusDeleted": { "message": "deleted" },
+  "statusFailed": { "message": "failed" },
+  "statusSkipped": { "message": "skipped" }
+}
