@@ -1,6 +1,6 @@
 {
   "appName": { "message": "AI Chat Bulk Deleter" },
-  "appDesc": { "message": "Batch delete conversations on ChatGPT and Gemini from the web UI with preview and selection." },
+  "appDesc": { "message": "Batch delete conversations on ChatGPT, Gemini, and Claude from the web UI with preview and selection." },
   "scan": { "message": "Scan" },
   "selectAll": { "message": "Select all" },
   "deleteSelected": { "message": "Delete selected" },

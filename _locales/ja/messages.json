@@ -1,6 +1,6 @@
 {
   "appName": { "message": "AI チャット一括削除ツール" },
-  "appDesc": { "message": "ChatGPT と Gemini のウェブ画面で会話を一括削除します。プレビューと選択に対応。" },
+  "appDesc": { "message": "ChatGPT、Gemini、Claude のウェブ画面で会話を一括削除します。プレビューと選択に対応。" },
   "scan": { "message": "スキャン" },
   "selectAll": { "message": "すべて選択" },
   "deleteSelected": { "message": "選択した項目を削除" },

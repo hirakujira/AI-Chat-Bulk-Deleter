@@ -1,6 +1,6 @@
 {
   "appName": { "message": "AI 對話批次刪除器" },
-  "appDesc": { "message": "在 ChatGPT 與 Gemini 網頁介面批次刪除對話，支援預覽與勾選。" },
+  "appDesc": { "message": "在 ChatGPT、Gemini 與 Claude 網頁介面批次刪除對話，支援預覽與勾選。" },
   "scan": { "message": "掃描" },
   "selectAll": { "message": "全選" },
   "deleteSelected": { "message": "刪除選取項目" },
