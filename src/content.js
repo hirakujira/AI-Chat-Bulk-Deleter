@@ -52,15 +52,20 @@
     return true;
   }
 
-  // Poll for an element until it appears or the timeout elapses.
-  async function waitFor(selector, timeout = 3000, interval = 100) {
+  // Poll a predicate until it returns a truthy value or the timeout elapses.
+  async function pollUntil(predicate, timeout = 3000, interval = 100) {
     const start = Date.now();
-    let el = $(selector);
-    while (!el && Date.now() - start < timeout) {
+    let result = predicate();
+    while (!result && Date.now() - start < timeout) {
       await sleep(interval);
-      el = $(selector);
+      result = predicate();
     }
-    return el;
+    return result;
+  }
+
+  // Poll for an element until it appears or the timeout elapses.
+  function waitFor(selector, timeout = 3000, interval = 100) {
+    return pollUntil(() => $(selector), timeout, interval);
   }
 
   // Buttons can stay disabled for a moment while a dialog's open transition
@@ -71,10 +76,7 @@
 
   // Poll until an element is no longer disabled or the timeout elapses.
   async function waitUntilEnabled(el, timeout = 3000, interval = 100) {
-    const start = Date.now();
-    while (el && isDisabled(el) && Date.now() - start < timeout) {
-      await sleep(interval);
-    }
+    await pollUntil(() => !isDisabled(el), timeout, interval);
     return el;
   }
 
@@ -135,10 +137,10 @@
   async function confirmDeletion() {
     // Wait for the confirm button itself to avoid matching a stale dialog root.
     let confirm = SELECTORS.confirmDeleteButton
-      ? await waitFor(SELECTORS.confirmDeleteButton, 3000)
+      ? await waitFor(SELECTORS.confirmDeleteButton)
       : null;
     if (!confirm) {
-      const dialog = await waitFor(SELECTORS.confirmDialog, 3000);
+      const dialog = await waitFor(SELECTORS.confirmDialog);
       if (!dialog) return false;
       // Fall back to the dialog's last button (Cancel left, Delete right).
       const buttons = $$("button", dialog);
@@ -147,7 +149,7 @@
     if (!confirm) return false;
     // The button can still be disabled during the dialog's open transition;
     // clicking it then would silently no-op.
-    await waitUntilEnabled(confirm, 3000);
+    await waitUntilEnabled(confirm);
     if (isDisabled(confirm)) return false;
     realClick(confirm);
     return true;
