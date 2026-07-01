@@ -1,10 +1,10 @@
 # AI Chat Bulk Deleter
 
-A Chrome extension to batch delete conversations on **ChatGPT** and **Gemini** directly from the web UI. It drives the page's own controls (open menu, click delete, confirm), so it never uses private APIs or touches your account tokens.
+A Chrome extension to batch delete conversations on **ChatGPT**, **Gemini**, and **Claude** directly from the web UI. It drives the page's own controls (open menu, click delete, confirm), so it never uses private APIs or touches your account tokens.
 
 ## Features
 
-- Works on ChatGPT (`chatgpt.com`, `chat.openai.com`) and Gemini (`gemini.google.com`).
+- Works on ChatGPT (`chatgpt.com`, `chat.openai.com`), Gemini (`gemini.google.com`), and Claude (`claude.ai`).
 - Scan the sidebar and pick exactly which conversations to delete with checkboxes.
 - A single checkbox to select or clear all scanned conversations at once.
 - Automatic rescan after deletion so the list stays in sync.

@@ -63,7 +63,30 @@
     return el;
   }
 
+  // Buttons can stay disabled for a moment while a dialog's open transition
+  // runs (e.g. Claude); a disabled button silently ignores .click().
+  function isDisabled(el) {
+    return !!(el.disabled || el.getAttribute("aria-disabled") === "true" || el.hasAttribute("data-disabled"));
+  }
+
+  // Poll until an element is no longer disabled or the timeout elapses.
+  async function waitUntilEnabled(el, timeout = 3000, interval = 100) {
+    const start = Date.now();
+    while (el && isDisabled(el) && Date.now() - start < timeout) {
+      await sleep(interval);
+    }
+    return el;
+  }
+
   // -- Scanning ------------------------------------------------------------
+
+  // Some platforms (e.g. Claude) duplicate the label in a visually-hidden
+  // .sr-only span alongside the visible one; strip it before reading text.
+  function extractTitle(a) {
+    const clone = a.cloneNode(true);
+    $$(".sr-only", clone).forEach((el) => el.remove());
+    return (clone.textContent || "").trim();
+  }
 
   function scanConversations() {
     const links = $$(SELECTORS.conversationLink);
@@ -72,7 +95,7 @@
       return {
         id: parseConversationId(href, platformKey),
         href,
-        title: (a.textContent || "").trim(),
+        title: extractTitle(a),
       };
     });
     return dedupeConversations(raw, platformKey);
@@ -122,6 +145,10 @@
       confirm = buttons[buttons.length - 1];
     }
     if (!confirm) return false;
+    // The button can still be disabled during the dialog's open transition;
+    // clicking it then would silently no-op.
+    await waitUntilEnabled(confirm, 3000);
+    if (isDisabled(confirm)) return false;
     realClick(confirm);
     return true;
   }

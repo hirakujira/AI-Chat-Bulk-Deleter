@@ -41,6 +41,23 @@
         confirmDeleteButton: '[data-test-id="confirm-button"] button, [data-test-id="confirm-button"]',
       },
     },
+    claude: {
+      label: "Claude",
+      origin: "https://claude.ai",
+      // Conversation id from /chat/<id>.
+      hrefPattern: /^\/chat\/([0-9a-zA-Z-]+)/,
+      selectors: {
+        conversationLink: 'a[href^="/chat/"]',
+        optionsTrigger: 'button[aria-haspopup="menu"]',
+        menu: '[role="menu"]',
+        deleteMenuItem: '[data-testid="delete-chat-trigger"]',
+        // Claude's confirm dialog is role="alertdialog", not "dialog".
+        confirmDialog: '[role="alertdialog"]',
+        // No testid on the confirm button; Cancel is first, Delete is last,
+        // so this falls back to the dialog's last button (see content.js).
+        confirmDeleteButton: null,
+      },
+    },
   };
 
   // Map a hostname to a platform key, or null when unsupported.
@@ -53,6 +70,9 @@
     }
     if (hostname.endsWith("gemini.google.com")) {
       return "gemini";
+    }
+    if (hostname.endsWith("claude.ai")) {
+      return "claude";
     }
     return null;
   }

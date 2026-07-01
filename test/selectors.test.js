@@ -6,6 +6,7 @@ test("detectPlatform maps known hosts", () => {
   assert.strictEqual(detectPlatform("chatgpt.com"), "chatgpt");
   assert.strictEqual(detectPlatform("chat.openai.com"), "chatgpt");
   assert.strictEqual(detectPlatform("gemini.google.com"), "gemini");
+  assert.strictEqual(detectPlatform("claude.ai"), "claude");
   assert.strictEqual(detectPlatform("example.com"), null);
   assert.strictEqual(detectPlatform(null), null);
 });
@@ -26,6 +27,15 @@ test("parseConversationId handles Gemini hrefs", () => {
     "abcDEF123"
   );
   assert.strictEqual(parseConversationId("/app", "gemini"), null);
+});
+
+test("parseConversationId handles Claude hrefs", () => {
+  assert.strictEqual(parseConversationId("/chat/616d4515-d2cc-401a", "claude"), "616d4515-d2cc-401a");
+  assert.strictEqual(
+    parseConversationId("https://claude.ai/chat/9f8e7d6c-1234", "claude"),
+    "9f8e7d6c-1234"
+  );
+  assert.strictEqual(parseConversationId("/new", "claude"), null);
 });
 
 test("parseConversationId returns null for unknown platform or empty href", () => {
