@@ -6,7 +6,7 @@ A Chrome extension to batch delete conversations on **ChatGPT** and **Gemini** d
 
 - Works on ChatGPT (`chatgpt.com`, `chat.openai.com`) and Gemini (`gemini.google.com`).
 - Scan the sidebar and pick exactly which conversations to delete with checkboxes.
-- Select all / clear, plus pause and stop while a batch is running.
+- A single checkbox to select or clear all scanned conversations at once.
 - Automatic rescan after deletion so the list stays in sync.
 - Localized UI: English, Traditional Chinese, Simplified Chinese, Japanese.
 - Panel appears only when you click the toolbar icon, and closes with the ✕ button.
@@ -23,7 +23,7 @@ A Chrome extension to batch delete conversations on **ChatGPT** and **Gemini** d
 1. Click the extension icon to open the panel (top-right of the page).
 2. Press **Scan** to list the conversations currently loaded in the sidebar.
 3. Tick the conversations to remove (or **Select all**).
-4. Press **Delete selected**. Use **Pause** / **Stop** as needed.
+4. Press **Delete selected**.
 
 Deletion is irreversible. Only conversations already loaded in the sidebar are scanned, so scroll the sidebar to load more before scanning.
 

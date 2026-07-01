@@ -1,17 +1,13 @@
 {
   "appName": { "message": "AI チャット一括削除ツール" },
-  "appDesc": { "message": "ChatGPT と Gemini のウェブ画面で会話を一括削除します。プレビュー、選択、一時停止、停止に対応。" },
+  "appDesc": { "message": "ChatGPT と Gemini のウェブ画面で会話を一括削除します。プレビューと選択に対応。" },
   "scan": { "message": "スキャン" },
   "selectAll": { "message": "すべて選択" },
-  "clear": { "message": "クリア" },
   "deleteSelected": { "message": "選択した項目を削除" },
   "deleteSelectedCount": {
     "message": "選択した項目を削除（$count$）",
     "placeholders": { "count": { "content": "$1" } }
   },
-  "pause": { "message": "一時停止" },
-  "resume": { "message": "再開" },
-  "stop": { "message": "停止" },
   "close": { "message": "閉じる" },
   "noScanned": { "message": "会話はまだスキャンされていません。" },
   "foundCount": {
@@ -23,13 +19,6 @@
     "placeholders": { "count": { "content": "$1" } }
   },
   "rescanned": { "message": "再スキャンしました。" },
-  "paused": { "message": "一時停止しました。" },
-  "resumed": { "message": "再開しました。" },
-  "stopping": { "message": "停止しています…" },
-  "stoppedAt": {
-    "message": "$current$/$total$ で停止しました。",
-    "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } }
-  },
   "done": {
     "message": "完了。削除＝$deleted$ 失敗＝$failed$ スキップ＝$skipped$",
     "placeholders": { "deleted": { "content": "$1" }, "failed": { "content": "$2" }, "skipped": { "content": "$3" } }

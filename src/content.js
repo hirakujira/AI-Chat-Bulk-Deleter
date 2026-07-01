@@ -26,8 +26,6 @@
   const state = {
     queue: [],
     running: false,
-    paused: false,
-    stopped: false,
   };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -155,18 +153,9 @@
 
   async function runDeletion(delayMs, log) {
     state.running = true;
-    state.stopped = false;
-    state.paused = false;
     const results = { deleted: 0, failed: 0, skipped: 0 };
 
     for (let i = 0; i < state.queue.length; i++) {
-      if (state.stopped) {
-        log(t("stoppedAt", [String(i), String(state.queue.length)]));
-        break;
-      }
-      while (state.paused && !state.stopped) {
-        await sleep(300);
-      }
       const conv = state.queue[i];
       let res;
       try {
@@ -207,15 +196,13 @@
           <button class="cgbd-scan">${escapeHtml(t("scan"))}</button>
         </div>
         <div class="cgbd-count">${escapeHtml(t("noScanned"))}</div>
-        <div class="cgbd-row cgbd-selectbar" style="display:none">
-          <button class="cgbd-select-all">${escapeHtml(t("selectAll"))}</button>
-          <button class="cgbd-select-none">${escapeHtml(t("clear"))}</button>
-        </div>
+        <label class="cgbd-row cgbd-selectbar" style="display:none">
+          <input type="checkbox" class="cgbd-select-all-toggle" />
+          <span>${escapeHtml(t("selectAll"))}</span>
+        </label>
         <div class="cgbd-list"></div>
         <div class="cgbd-row">
           <button class="cgbd-delete" disabled>${escapeHtml(t("deleteSelected"))}</button>
-          <button class="cgbd-pause" disabled>${escapeHtml(t("pause"))}</button>
-          <button class="cgbd-stop" disabled>${escapeHtml(t("stop"))}</button>
         </div>
         <pre class="cgbd-log"></pre>
       </div>
@@ -229,12 +216,9 @@
     const elList = $(".cgbd-list", panel);
     const btnScan = $(".cgbd-scan", panel);
     const btnDelete = $(".cgbd-delete", panel);
-    const btnPause = $(".cgbd-pause", panel);
-    const btnStop = $(".cgbd-stop", panel);
     const elLog = $(".cgbd-log", panel);
     const elSelectBar = $(".cgbd-selectbar", panel);
-    const btnSelectAll = $(".cgbd-select-all", panel);
-    const btnSelectNone = $(".cgbd-select-none", panel);
+    const selectAllToggle = $(".cgbd-select-all-toggle", panel);
 
     let scanned = [];
 
@@ -258,6 +242,7 @@
       scanned = scanConversations();
       elCount.textContent = t("foundCount", [String(scanned.length)]);
       elSelectBar.style.display = scanned.length > 0 ? "flex" : "none";
+      selectAllToggle.checked = false;
       elList.innerHTML = scanned
         .map(
           (c) =>
@@ -272,13 +257,8 @@
 
     btnScan.addEventListener("click", doScan);
 
-    btnSelectAll.addEventListener("click", () => {
-      getCheckboxes().forEach((cb) => (cb.checked = true));
-      refreshDeleteEnabled();
-    });
-
-    btnSelectNone.addEventListener("click", () => {
-      getCheckboxes().forEach((cb) => (cb.checked = false));
+    selectAllToggle.addEventListener("change", () => {
+      getCheckboxes().forEach((cb) => (cb.checked = selectAllToggle.checked));
       refreshDeleteEnabled();
     });
 
@@ -288,28 +268,13 @@
       if (state.queue.length === 0) return;
       btnDelete.disabled = true;
       btnScan.disabled = true;
-      btnPause.disabled = false;
-      btnStop.disabled = false;
       log(t("deleting", [String(state.queue.length)]));
       await runDeletion(DEFAULT_DELAY_MS, log);
       btnScan.disabled = false;
-      btnPause.disabled = true;
-      btnStop.disabled = true;
       // Let the sidebar settle, then refresh so deleted conversations drop off.
       await sleep(RESCAN_DELAY_MS);
       doScan();
       log(t("rescanned"));
-    });
-
-    btnPause.addEventListener("click", () => {
-      state.paused = !state.paused;
-      btnPause.textContent = state.paused ? t("resume") : t("pause");
-      log(state.paused ? t("paused") : t("resumed"));
-    });
-
-    btnStop.addEventListener("click", () => {
-      state.stopped = true;
-      log(t("stopping"));
     });
 
     $(".cgbd-close", panel).addEventListener("click", () => {

@@ -1,17 +1,13 @@
 {
   "appName": { "message": "AI 對話批次刪除器" },
-  "appDesc": { "message": "在 ChatGPT 與 Gemini 網頁介面批次刪除對話，支援預覽、勾選、暫停與停止。" },
+  "appDesc": { "message": "在 ChatGPT 與 Gemini 網頁介面批次刪除對話，支援預覽與勾選。" },
   "scan": { "message": "掃描" },
   "selectAll": { "message": "全選" },
-  "clear": { "message": "清除" },
   "deleteSelected": { "message": "刪除選取項目" },
   "deleteSelectedCount": {
     "message": "刪除選取項目（$count$）",
     "placeholders": { "count": { "content": "$1" } }
   },
-  "pause": { "message": "暫停" },
-  "resume": { "message": "繼續" },
-  "stop": { "message": "停止" },
   "close": { "message": "關閉" },
   "noScanned": { "message": "尚未掃描對話。" },
   "foundCount": {
@@ -23,13 +19,6 @@
     "placeholders": { "count": { "content": "$1" } }
   },
   "rescanned": { "message": "已重新掃描。" },
-  "paused": { "message": "已暫停。" },
-  "resumed": { "message": "已繼續。" },
-  "stopping": { "message": "停止中…" },
-  "stoppedAt": {
-    "message": "已於 $current$/$total$ 停止。",
-    "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } }
-  },
   "done": {
     "message": "完成。已刪除＝$deleted$ 失敗＝$failed$ 略過＝$skipped$",
     "placeholders": { "deleted": { "content": "$1" }, "failed": { "content": "$2" }, "skipped": { "content": "$3" } }
