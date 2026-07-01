@@ -47,9 +47,12 @@
       // Conversation id from /chat/<id>.
       hrefPattern: /^\/chat\/([0-9a-zA-Z-]+)/,
       selectors: {
-        // Scoped to actual sidebar rows; plain a[href^="/chat/"] also matches
-        // unrelated /chat/ links elsewhere on the page (no options menu there).
-        conversationLink: 'a[data-dd-action-name="sidebar-chat-item"]',
+        // Sidebar rows (data-dd-action-name) and the /recents "all chats"
+        // table rows (data-primary, href-scoped so it excludes other tables
+        // e.g. Projects) both list conversations; unscoped a[href^="/chat/"]
+        // also matches unrelated /chat/ links elsewhere on the page.
+        conversationLink:
+          'a[data-dd-action-name="sidebar-chat-item"], a[data-primary="true"][href^="/chat/"]',
         optionsTrigger: 'button[aria-haspopup="menu"]',
         menu: '[role="menu"]',
         deleteMenuItem: '[data-testid="delete-chat-trigger"]',

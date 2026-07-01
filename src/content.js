@@ -84,10 +84,13 @@
 
   // Some platforms (e.g. Claude) duplicate the label in a visually-hidden
   // .sr-only span alongside the visible one; strip it before reading text.
+  // Some rows (e.g. Claude's /recents table) have no link text at all and
+  // rely on aria-label instead.
   function extractTitle(a) {
     const clone = a.cloneNode(true);
     $$(".sr-only", clone).forEach((el) => el.remove());
-    return (clone.textContent || "").trim();
+    const text = (clone.textContent || "").trim();
+    return text || (a.getAttribute("aria-label") || "").trim();
   }
 
   function scanConversations() {
@@ -116,6 +119,7 @@
     const row =
       linkEl.closest('[data-test-id="conversation"]') ||
       linkEl.closest("li") ||
+      linkEl.closest("tr") ||
       linkEl.parentElement;
     if (!row) return null;
     // Gemini reveals the actions button only on hover/focus.
