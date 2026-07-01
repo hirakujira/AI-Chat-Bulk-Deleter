@@ -47,7 +47,9 @@
       // Conversation id from /chat/<id>.
       hrefPattern: /^\/chat\/([0-9a-zA-Z-]+)/,
       selectors: {
-        conversationLink: 'a[href^="/chat/"]',
+        // Scoped to actual sidebar rows; plain a[href^="/chat/"] also matches
+        // unrelated /chat/ links elsewhere on the page (no options menu there).
+        conversationLink: 'a[data-dd-action-name="sidebar-chat-item"]',
         optionsTrigger: 'button[aria-haspopup="menu"]',
         menu: '[role="menu"]',
         deleteMenuItem: '[data-testid="delete-chat-trigger"]',
