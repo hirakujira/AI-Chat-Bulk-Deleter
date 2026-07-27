@@ -114,3 +114,9 @@ test("every locale warns before a batch deletion", () => {
     assert.strictEqual(warning.placeholders.count.content, "$2");
   }
 });
+
+test("Gemini confirm selector follows the current Angular Material dialog markup", () => {
+  const selector = PLATFORMS.gemini.selectors.confirmDeleteButton;
+  assert.match(selector, /cdkfocusinitial/);
+  assert.doesNotMatch(selector, /data-test-id="confirm-button"/);
+});
