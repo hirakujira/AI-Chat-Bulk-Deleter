@@ -1,6 +1,11 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const { detectPlatform, parseConversationId, dedupeConversations } = require("../src/selectors.js");
+const {
+  PLATFORMS,
+  detectPlatform,
+  parseConversationId,
+  dedupeConversations,
+} = require("../src/selectors.js");
 
 test("detectPlatform maps known hosts", () => {
   assert.strictEqual(detectPlatform("chatgpt.com"), "chatgpt");
@@ -62,4 +67,10 @@ test("dedupeConversations works for Gemini and falls back to id when title missi
   const out = dedupeConversations([{ href: "/app/xyz" }], "gemini");
   assert.strictEqual(out[0].id, "xyz");
   assert.strictEqual(out[0].title, "xyz");
+});
+
+test("Gemini confirm selector follows the current Angular Material dialog markup", () => {
+  const selector = PLATFORMS.gemini.selectors.confirmDeleteButton;
+  assert.match(selector, /cdkfocusinitial/);
+  assert.doesNotMatch(selector, /data-test-id="confirm-button"/);
 });

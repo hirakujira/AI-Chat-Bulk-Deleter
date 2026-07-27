@@ -38,7 +38,10 @@
         menu: '[role="menu"]',
         deleteMenuItem: '[role="menuitem"], button[data-test-id="delete-button"]',
         confirmDialog: '[role="dialog"], mat-dialog-container, .mat-mdc-dialog-surface',
-        confirmDeleteButton: '[data-test-id="confirm-button"] button, [data-test-id="confirm-button"]',
+        // Gemini no longer exposes data-test-id="confirm-button". Angular
+        // Material marks the destructive default action with cdkfocusinitial.
+        confirmDeleteButton:
+          'gem-button[cdkfocusinitial] button, [cdkfocusinitial] button, button[cdkfocusinitial]',
       },
     },
     claude: {

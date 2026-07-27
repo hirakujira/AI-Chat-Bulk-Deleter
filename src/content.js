@@ -139,13 +139,15 @@
   }
 
   async function confirmDeletion() {
-    // Wait for the confirm button itself to avoid matching a stale dialog root.
+    // Find the active dialog first, then keep every button lookup inside it.
+    // This avoids matching controls from stale or unrelated page overlays.
+    const dialog = await waitFor(SELECTORS.confirmDialog);
+    if (!dialog) return false;
+
     let confirm = SELECTORS.confirmDeleteButton
-      ? await waitFor(SELECTORS.confirmDeleteButton)
+      ? await pollUntil(() => $(SELECTORS.confirmDeleteButton, dialog))
       : null;
     if (!confirm) {
-      const dialog = await waitFor(SELECTORS.confirmDialog);
-      if (!dialog) return false;
       // Fall back to the dialog's last button (Cancel left, Delete right).
       const buttons = $$("button", dialog);
       confirm = buttons[buttons.length - 1];
