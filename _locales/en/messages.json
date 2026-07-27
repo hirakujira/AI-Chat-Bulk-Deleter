@@ -1,12 +1,16 @@
 {
   "appName": { "message": "AI Chat Bulk Deleter" },
-  "appDesc": { "message": "Batch delete conversations on ChatGPT, Gemini, and Claude from the web UI with preview and selection." },
+  "appDesc": { "message": "Batch delete conversations on ChatGPT, Gemini, Claude, and Grok from the web UI with preview and selection." },
   "scan": { "message": "Scan" },
   "selectAll": { "message": "Select all" },
   "deleteSelected": { "message": "Delete selected" },
   "deleteSelectedCount": {
     "message": "Delete selected ($count$)",
     "placeholders": { "count": { "content": "$1" } }
+  },
+  "confirmBatchDelete": {
+    "message": "Permanently delete $count$ selected conversation(s) from $platform$? This action cannot be undone.",
+    "placeholders": { "platform": { "content": "$1" }, "count": { "content": "$2" } }
   },
   "close": { "message": "Close" },
   "noScanned": { "message": "No conversations scanned." },

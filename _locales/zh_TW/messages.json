@@ -1,12 +1,16 @@
 {
   "appName": { "message": "AI 對話批次刪除器" },
-  "appDesc": { "message": "在 ChatGPT、Gemini 與 Claude 網頁介面批次刪除對話，支援預覽與勾選。" },
+  "appDesc": { "message": "在 ChatGPT、Gemini、Claude 與 Grok 網頁介面批次刪除對話，支援預覽與勾選。" },
   "scan": { "message": "掃描" },
   "selectAll": { "message": "全選" },
   "deleteSelected": { "message": "刪除選取項目" },
   "deleteSelectedCount": {
     "message": "刪除選取項目（$count$）",
     "placeholders": { "count": { "content": "$1" } }
+  },
+  "confirmBatchDelete": {
+    "message": "確定要從 $platform$ 永久刪除選取的 $count$ 筆對話嗎？刪除後無法復原。",
+    "placeholders": { "platform": { "content": "$1" }, "count": { "content": "$2" } }
   },
   "close": { "message": "關閉" },
   "noScanned": { "message": "尚未掃描對話。" },
