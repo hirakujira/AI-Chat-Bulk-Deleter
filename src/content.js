@@ -20,9 +20,8 @@
   const SELECTORS = platform.selectors;
 
   const PANEL_ID = "cgbd-panel";
-  const DEFAULT_DELAY_MS = 1200;
-  // ChatGPT's sidebar is slow to drop deleted rows; wait longer before rescanning.
-  const RESCAN_DELAY_MS = 2500;
+  const MIN_DELETE_DELAY_MS = 2000;
+  const MAX_DELETE_DELAY_MS = 4000;
 
   // Localized string lookup via the extension's _locales messages.
   const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
@@ -35,6 +34,10 @@
   };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const nextDeleteDelay = () =>
+    Math.floor(
+      MIN_DELETE_DELAY_MS + Math.random() * (MAX_DELETE_DELAY_MS - MIN_DELETE_DELAY_MS + 1)
+    );
 
   function $(selector, root = document) {
     return root.querySelector(selector);
@@ -193,7 +196,7 @@
 
   // -- Batch runner --------------------------------------------------------
 
-  async function runDeletion(delayMs, log) {
+  async function runDeletion(log) {
     state.running = true;
     const results = { deleted: 0, failed: 0, skipped: 0, items: [] };
 
@@ -214,7 +217,9 @@
         conv.title || conv.id,
       ]);
       log(`${line}${res.reason ? ` (${res.reason})` : ""}`);
-      await sleep(delayMs);
+      if (i < state.queue.length - 1) {
+        await sleep(nextDeleteDelay());
+      }
     }
 
     state.running = false;
@@ -339,10 +344,9 @@
       btnDelete.disabled = true;
       setListLocked(true);
       log(t("deleting", [String(state.queue.length)]));
-      const results = await runDeletion(DEFAULT_DELAY_MS, log);
+      const results = await runDeletion(log);
       // Keep the list unchanged during the batch, then remove only items that
       // were confirmed as deleted. Failed or skipped items stay selected.
-      await sleep(RESCAN_DELAY_MS);
       const reconciled = reconcileDeletionResults(scanned, selectedSnapshot, results.items);
       scanned = reconciled.conversations;
       renderScanned(reconciled.selectedIds);
