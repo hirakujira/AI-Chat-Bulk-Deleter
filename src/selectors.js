@@ -126,10 +126,29 @@
     return out;
   }
 
+  // Remove only successfully deleted conversations while preserving the
+  // selection state of failed or skipped items.
+  function reconcileDeletionResults(conversations, selectedIds, results) {
+    const deletedIds = new Set(
+      (Array.isArray(results) ? results : [])
+        .filter((result) => result && result.status === "deleted")
+        .map((result) => result.id)
+    );
+    return {
+      conversations: (Array.isArray(conversations) ? conversations : []).filter(
+        (conversation) => conversation && !deletedIds.has(conversation.id)
+      ),
+      selectedIds: (Array.isArray(selectedIds) ? selectedIds : []).filter(
+        (id) => !deletedIds.has(id)
+      ),
+    };
+  }
+
   return {
     PLATFORMS,
     detectPlatform,
     parseConversationId,
     dedupeConversations,
+    reconcileDeletionResults,
   };
 });

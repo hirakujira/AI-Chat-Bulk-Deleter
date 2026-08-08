@@ -5,6 +5,7 @@ const {
   detectPlatform,
   parseConversationId,
   dedupeConversations,
+  reconcileDeletionResults,
 } = require("../src/selectors.js");
 
 test("detectPlatform maps known hosts", () => {
@@ -74,6 +75,32 @@ test("dedupeConversations works for Gemini and falls back to id when title missi
   const out = dedupeConversations([{ href: "/app/xyz" }], "gemini");
   assert.strictEqual(out[0].id, "xyz");
   assert.strictEqual(out[0].title, "xyz");
+});
+
+test("reconcileDeletionResults removes only successfully deleted items", () => {
+  const reconciled = reconcileDeletionResults(
+    [{ id: "a" }, { id: "b" }, { id: "c" }],
+    ["a", "b", "c"],
+    [
+      { id: "a", status: "deleted" },
+      { id: "b", status: "failed" },
+      { id: "c", status: "skipped" },
+    ]
+  );
+
+  assert.deepStrictEqual(reconciled.conversations, [{ id: "b" }, { id: "c" }]);
+  assert.deepStrictEqual(reconciled.selectedIds, ["b", "c"]);
+});
+
+test("reconcileDeletionResults preserves unselected conversations", () => {
+  const reconciled = reconcileDeletionResults(
+    [{ id: "a" }, { id: "b" }, { id: "c" }],
+    ["a"],
+    [{ id: "a", status: "deleted" }]
+  );
+
+  assert.deepStrictEqual(reconciled.conversations, [{ id: "b" }, { id: "c" }]);
+  assert.deepStrictEqual(reconciled.selectedIds, []);
 });
 
 test("Gemini confirm selector follows the current Angular Material dialog markup", () => {

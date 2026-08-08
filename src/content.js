@@ -4,7 +4,13 @@
 (function () {
   "use strict";
 
-  const { PLATFORMS, detectPlatform, parseConversationId, dedupeConversations } = window.CGBD;
+  const {
+    PLATFORMS,
+    detectPlatform,
+    parseConversationId,
+    dedupeConversations,
+    reconcileDeletionResults,
+  } = window.CGBD;
 
   const platformKey = detectPlatform(location.hostname);
   if (!platformKey) {
@@ -189,7 +195,7 @@
 
   async function runDeletion(delayMs, log) {
     state.running = true;
-    const results = { deleted: 0, failed: 0, skipped: 0 };
+    const results = { deleted: 0, failed: 0, skipped: 0, items: [] };
 
     for (let i = 0; i < state.queue.length; i++) {
       const conv = state.queue[i];
@@ -200,6 +206,7 @@
         res = { id: conv.id, status: "failed", reason: String(e && e.message) };
       }
       results[res.status] = (results[res.status] || 0) + 1;
+      results.items.push(res);
       const line = t("logLine", [
         String(i + 1),
         String(state.queue.length),
@@ -252,6 +259,7 @@
     const elList = $(".cgbd-list", panel);
     const btnScan = $(".cgbd-scan", panel);
     const btnDelete = $(".cgbd-delete", panel);
+    const btnClose = $(".cgbd-close", panel);
     const elLog = $(".cgbd-log", panel);
     const elSelectBar = $(".cgbd-selectbar", panel);
     const selectAllToggle = $(".cgbd-select-all-toggle", panel);
@@ -268,27 +276,52 @@
     const selectedIds = () =>
       getCheckboxes().filter((cb) => cb.checked).map((cb) => cb.dataset.id);
 
+    const refreshSelectAllState = () => {
+      const checkboxes = getCheckboxes();
+      const selectedCount = checkboxes.filter((cb) => cb.checked).length;
+      selectAllToggle.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+      selectAllToggle.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+    };
+
     const refreshDeleteEnabled = () => {
       const count = selectedIds().length;
       btnDelete.textContent = count > 0 ? t("deleteSelectedCount", [String(count)]) : t("deleteSelected");
       btnDelete.disabled = !(count > 0 && !state.running);
+      refreshSelectAllState();
     };
 
-    const doScan = () => {
-      scanned = scanConversations();
+    const renderScanned = (checkedIds = []) => {
+      const checked = new Set(checkedIds);
       elCount.textContent = t("foundCount", [String(scanned.length)]);
       elSelectBar.style.display = scanned.length > 0 ? "flex" : "none";
-      selectAllToggle.checked = false;
       elList.innerHTML = scanned
         .map(
           (c) =>
             `<label class="cgbd-item" title="${c.id}">` +
-            `<input type="checkbox" class="cgbd-check" data-id="${c.id}" />` +
+            `<input type="checkbox" class="cgbd-check" data-id="${c.id}"${
+              checked.has(c.id) ? " checked" : ""
+            } />` +
             `<span class="cgbd-title">${escapeHtml(c.title || c.id)}</span></label>`
         )
         .join("");
       getCheckboxes().forEach((cb) => cb.addEventListener("change", refreshDeleteEnabled));
       refreshDeleteEnabled();
+    };
+
+    const setListLocked = (locked) => {
+      btnScan.disabled = locked;
+      btnClose.disabled = locked;
+      selectAllToggle.disabled = locked;
+      getCheckboxes().forEach((cb) => {
+        cb.disabled = locked;
+      });
+      elList.setAttribute("aria-busy", String(locked));
+    };
+
+    const doScan = () => {
+      if (state.running) return;
+      scanned = scanConversations();
+      renderScanned();
     };
 
     btnScan.addEventListener("click", doScan);
@@ -299,21 +332,24 @@
     });
 
     btnDelete.addEventListener("click", async () => {
-      const ids = new Set(selectedIds());
+      const selectedSnapshot = selectedIds();
+      const ids = new Set(selectedSnapshot);
       state.queue = scanned.filter((c) => ids.has(c.id));
       if (state.queue.length === 0) return;
       btnDelete.disabled = true;
-      btnScan.disabled = true;
+      setListLocked(true);
       log(t("deleting", [String(state.queue.length)]));
-      await runDeletion(DEFAULT_DELAY_MS, log);
-      btnScan.disabled = false;
-      // Let the sidebar settle, then refresh so deleted conversations drop off.
+      const results = await runDeletion(DEFAULT_DELAY_MS, log);
+      // Keep the list unchanged during the batch, then remove only items that
+      // were confirmed as deleted. Failed or skipped items stay selected.
       await sleep(RESCAN_DELAY_MS);
-      doScan();
-      log(t("rescanned"));
+      const reconciled = reconcileDeletionResults(scanned, selectedSnapshot, results.items);
+      scanned = reconciled.conversations;
+      renderScanned(reconciled.selectedIds);
+      setListLocked(false);
     });
 
-    $(".cgbd-close", panel).addEventListener("click", () => {
+    btnClose.addEventListener("click", () => {
       panel.remove();
     });
   }
@@ -328,7 +364,9 @@
   function togglePanel() {
     const existing = document.getElementById(PANEL_ID);
     if (existing) {
-      existing.remove();
+      if (!state.running) {
+        existing.remove();
+      }
     } else {
       buildPanel();
     }
