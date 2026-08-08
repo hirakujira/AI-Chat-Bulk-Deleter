@@ -1,6 +1,11 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const { detectPlatform, parseConversationId, dedupeConversations } = require("../src/selectors.js");
+const {
+  PLATFORMS,
+  detectPlatform,
+  parseConversationId,
+  dedupeConversations,
+} = require("../src/selectors.js");
 
 test("detectPlatform maps known hosts", () => {
   assert.strictEqual(detectPlatform("chatgpt.com"), "chatgpt");
@@ -9,6 +14,13 @@ test("detectPlatform maps known hosts", () => {
   assert.strictEqual(detectPlatform("claude.ai"), "claude");
   assert.strictEqual(detectPlatform("example.com"), null);
   assert.strictEqual(detectPlatform(null), null);
+});
+
+test("ChatGPT targets the dedicated delete menu item", () => {
+  assert.strictEqual(
+    PLATFORMS.chatgpt.selectors.deleteMenuItem,
+    '[data-testid="delete-chat-menu-item"]'
+  );
 });
 
 test("parseConversationId handles ChatGPT hrefs", () => {

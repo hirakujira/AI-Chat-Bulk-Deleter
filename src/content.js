@@ -133,7 +133,8 @@
     if (!menu) return false;
     const items = $$(SELECTORS.deleteMenuItem, menu);
     if (items.length === 0) return false;
-    // Delete is the last item in the conversation options menu.
+    // Prefer a platform-specific delete selector. Platforms with only generic
+    // menu item selectors keep the delete action as the last matching item.
     realClick(items[items.length - 1]);
     return true;
   }

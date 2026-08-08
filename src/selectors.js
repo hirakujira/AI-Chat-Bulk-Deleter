@@ -21,7 +21,7 @@
         conversationLink: 'nav a[href^="/c/"]',
         optionsTrigger: 'button[aria-haspopup="menu"], button[data-testid$="-options"]',
         menu: '[role="menu"]',
-        deleteMenuItem: '[role="menuitem"]',
+        deleteMenuItem: '[data-testid="delete-chat-menu-item"]',
         confirmDialog: '[role="dialog"]',
         // Language-independent confirm button for "Delete chat?" dialog.
         confirmDeleteButton: '[data-testid="delete-conversation-confirm-button"]',
