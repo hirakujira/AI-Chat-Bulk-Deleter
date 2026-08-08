@@ -75,3 +75,9 @@ test("dedupeConversations works for Gemini and falls back to id when title missi
   assert.strictEqual(out[0].id, "xyz");
   assert.strictEqual(out[0].title, "xyz");
 });
+
+test("Gemini confirm selector follows the current Angular Material dialog markup", () => {
+  const selector = PLATFORMS.gemini.selectors.confirmDeleteButton;
+  assert.match(selector, /cdkfocusinitial/);
+  assert.doesNotMatch(selector, /data-test-id="confirm-button"/);
+});
