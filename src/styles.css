@@ -165,6 +165,7 @@
 
 #cgbd-panel .cgbd-list {
   max-height: 140px;
+  max-height: clamp(140px, calc(100dvh - 440px), 560px);
   overflow-y: auto;
   border: 1px solid var(--cgbd-border);
   border-radius: 8px;
