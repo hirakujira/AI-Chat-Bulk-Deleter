@@ -9,6 +9,8 @@
     detectPlatform,
     parseConversationId,
     dedupeConversations,
+    randomInt,
+    shuffleConversations,
     reconcileDeletionResults,
   } = window.CGBD;
 
@@ -22,6 +24,11 @@
   const PANEL_ID = "cgbd-panel";
   const MIN_DELETE_DELAY_MS = 2000;
   const MAX_DELETE_DELAY_MS = 4000;
+  const CHATGPT_MIN_DELETE_DELAY_MS = 3000;
+  const CHATGPT_MAX_DELETE_DELAY_MS = 7000;
+  const CHATGPT_MIN_ACTION_DELAY_MS = 400;
+  const CHATGPT_MAX_ACTION_DELAY_MS = 1200;
+  const CHATGPT_REMOVAL_TIMEOUT_MS = 10000;
 
   // Localized string lookup via the extension's _locales messages.
   const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
@@ -35,9 +42,13 @@
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const nextDeleteDelay = () =>
-    Math.floor(
-      MIN_DELETE_DELAY_MS + Math.random() * (MAX_DELETE_DELAY_MS - MIN_DELETE_DELAY_MS + 1)
-    );
+    platformKey === "chatgpt"
+      ? randomInt(CHATGPT_MIN_DELETE_DELAY_MS, CHATGPT_MAX_DELETE_DELAY_MS)
+      : randomInt(MIN_DELETE_DELAY_MS, MAX_DELETE_DELAY_MS);
+  const humanActionDelay = () =>
+    platformKey === "chatgpt"
+      ? sleep(randomInt(CHATGPT_MIN_ACTION_DELAY_MS, CHATGPT_MAX_ACTION_DELAY_MS))
+      : Promise.resolve();
 
   function $(selector, root = document) {
     return root.querySelector(selector);
@@ -144,15 +155,20 @@
     if (items.length === 0) return false;
     // Prefer a platform-specific delete selector. Platforms with only generic
     // menu item selectors keep the delete action as the last matching item.
+    await humanActionDelay();
     realClick(items[items.length - 1]);
     return true;
   }
 
-  async function confirmDeletion() {
+  async function waitForConversationRemoval(id) {
+    return !!(await pollUntil(() => !findLink(id), CHATGPT_REMOVAL_TIMEOUT_MS));
+  }
+
+  async function confirmDeletion(id) {
     // Find the active dialog first, then keep every button lookup inside it.
     // This avoids matching controls from stale or unrelated page overlays.
     const dialog = await waitFor(SELECTORS.confirmDialog);
-    if (!dialog) return false;
+    if (!dialog) return { ok: false, reason: "confirm dialog not found" };
 
     let confirm = SELECTORS.confirmDeleteButton
       ? await pollUntil(() => $(SELECTORS.confirmDeleteButton, dialog))
@@ -162,13 +178,17 @@
       const buttons = $$("button", dialog);
       confirm = buttons[buttons.length - 1];
     }
-    if (!confirm) return false;
+    if (!confirm) return { ok: false, reason: "confirm button not found" };
     // The button can still be disabled during the dialog's open transition;
     // clicking it then would silently no-op.
     await waitUntilEnabled(confirm);
-    if (isDisabled(confirm)) return false;
+    if (isDisabled(confirm)) return { ok: false, reason: "confirm button remained disabled" };
+    await humanActionDelay();
     realClick(confirm);
-    return true;
+    if (platformKey !== "chatgpt" || (await waitForConversationRemoval(id))) {
+      return { ok: true };
+    }
+    return { ok: false, reason: "conversation remained after confirmation" };
   }
 
   async function deleteOne(conv) {
@@ -182,14 +202,15 @@
     if (!trigger) {
       return { id: conv.id, status: "failed", reason: "options trigger not found" };
     }
+    await humanActionDelay();
     realClick(trigger);
     const opened = await clickDeleteMenuItem();
     if (!opened) {
       return { id: conv.id, status: "failed", reason: "delete menu item not found" };
     }
-    const confirmed = await confirmDeletion();
-    if (!confirmed) {
-      return { id: conv.id, status: "failed", reason: "confirm dialog not found" };
+    const confirmation = await confirmDeletion(conv.id);
+    if (!confirmation.ok) {
+      return { id: conv.id, status: "failed", reason: confirmation.reason };
     }
     return { id: conv.id, status: "deleted" };
   }
@@ -217,7 +238,9 @@
         conv.title || conv.id,
       ]);
       log(`${line}${res.reason ? ` (${res.reason})` : ""}`);
-      if (i < state.queue.length - 1) {
+      // ChatGPT waits for the sidebar entry to disappear before reporting a
+      // deletion, so a successful result can proceed immediately.
+      if (i < state.queue.length - 1 && !(platformKey === "chatgpt" && res.status === "deleted")) {
         await sleep(nextDeleteDelay());
       }
     }
@@ -339,7 +362,11 @@
     btnDelete.addEventListener("click", async () => {
       const selectedSnapshot = selectedIds();
       const ids = new Set(selectedSnapshot);
-      state.queue = scanned.filter((c) => ids.has(c.id));
+      const selectedConversations = scanned.filter((c) => ids.has(c.id));
+      state.queue =
+        platformKey === "chatgpt"
+          ? shuffleConversations(selectedConversations)
+          : selectedConversations;
       if (state.queue.length === 0) return;
       btnDelete.disabled = true;
       setListLocked(true);

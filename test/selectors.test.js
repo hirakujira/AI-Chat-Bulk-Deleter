@@ -5,6 +5,8 @@ const {
   detectPlatform,
   parseConversationId,
   dedupeConversations,
+  randomInt,
+  shuffleConversations,
   reconcileDeletionResults,
 } = require("../src/selectors.js");
 
@@ -75,6 +77,25 @@ test("dedupeConversations works for Gemini and falls back to id when title missi
   const out = dedupeConversations([{ href: "/app/xyz" }], "gemini");
   assert.strictEqual(out[0].id, "xyz");
   assert.strictEqual(out[0].title, "xyz");
+});
+
+test("randomInt returns inclusive bounds with an injected random source", () => {
+  assert.strictEqual(randomInt(3, 7, () => 0), 3);
+  assert.strictEqual(randomInt(3, 7, () => 0.999999), 7);
+});
+
+test("shuffleConversations shuffles a copy without losing conversations", () => {
+  const conversations = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  const randomValues = [0, 0];
+  const shuffled = shuffleConversations(conversations, () => randomValues.shift());
+
+  assert.deepStrictEqual(conversations.map((conversation) => conversation.id), ["a", "b", "c"]);
+  assert.deepStrictEqual(shuffled.map((conversation) => conversation.id), ["b", "c", "a"]);
+  assert.deepStrictEqual(
+    shuffled.map((conversation) => conversation.id).sort(),
+    ["a", "b", "c"]
+  );
+  assert.notStrictEqual(shuffled, conversations);
 });
 
 test("reconcileDeletionResults removes only successfully deleted items", () => {

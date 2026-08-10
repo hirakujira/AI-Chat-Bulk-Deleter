@@ -126,6 +126,24 @@
     return out;
   }
 
+  // Return an inclusive random integer. The random source is injectable so
+  // callers can test the helper without relying on nondeterministic values.
+  function randomInt(min, max, random = Math.random) {
+    const low = Math.ceil(min);
+    const high = Math.floor(max);
+    return low + Math.floor(random() * (high - low + 1));
+  }
+
+  // Return a shuffled copy without changing the original list.
+  function shuffleConversations(conversations, random = Math.random) {
+    const shuffled = Array.isArray(conversations) ? [...conversations] : [];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+      const swapIndex = randomInt(0, index, random);
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    return shuffled;
+  }
+
   // Remove only successfully deleted conversations while preserving the
   // selection state of failed or skipped items.
   function reconcileDeletionResults(conversations, selectedIds, results) {
@@ -149,6 +167,8 @@
     detectPlatform,
     parseConversationId,
     dedupeConversations,
+    randomInt,
+    shuffleConversations,
     reconcileDeletionResults,
   };
 });
