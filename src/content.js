@@ -1,6 +1,7 @@
 // Content script: injects a control panel into a supported AI chat site and
-// performs UI-driven batch deletion of conversations. No private APIs, no
-// token access, no manual sidebar DOM removal.
+// performs UI-driven batch deletion of conversations, including the site's
+// confirmation step when one exists. No private APIs, no token access, no
+// manual sidebar DOM removal.
 (function () {
   "use strict";
 
@@ -69,6 +70,33 @@
     } else {
       el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
     }
+    return true;
+  }
+
+  // Radix dropdown triggers (Grok) open on pointerdown. HTMLElement.click()
+  // only emits click, so dispatch the event that the component listens for.
+  function activateOptionsTrigger(el) {
+    if (platform.optionsTriggerActivation !== "pointerdown") {
+      return realClick(el);
+    }
+    if (!el) return false;
+    if (typeof el.focus === "function") {
+      el.focus({ preventScroll: true });
+    }
+    const EventClass = typeof PointerEvent === "function" ? PointerEvent : MouseEvent;
+    el.dispatchEvent(
+      new EventClass("pointerdown", {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        button: 0,
+        buttons: 1,
+        pointerId: 1,
+        pointerType: "mouse",
+        isPrimary: true,
+        view: window,
+      })
+    );
     return true;
   }
 
@@ -203,10 +231,18 @@
       return { id: conv.id, status: "failed", reason: "options trigger not found" };
     }
     await humanActionDelay();
-    realClick(trigger);
+    activateOptionsTrigger(trigger);
     const opened = await clickDeleteMenuItem();
     if (!opened) {
       return { id: conv.id, status: "failed", reason: "delete menu item not found" };
+    }
+    if (platform.requiresDeleteConfirmation === false) {
+      // Grok removes a conversation as soon as the Delete menu item is
+      // clicked. Verify that the row disappears before reporting success.
+      const removed = await pollUntil(() => !findLink(conv.id));
+      return removed
+        ? { id: conv.id, status: "deleted" }
+        : { id: conv.id, status: "failed", reason: "conversation still present after delete" };
     }
     const confirmation = await confirmDeletion(conv.id);
     if (!confirmation.ok) {
@@ -363,11 +399,15 @@
       const selectedSnapshot = selectedIds();
       const ids = new Set(selectedSnapshot);
       const selectedConversations = scanned.filter((c) => ids.has(c.id));
+      if (selectedConversations.length === 0) return;
+      const confirmed = window.confirm(
+        t("confirmBatchDelete", [platform.label, String(selectedConversations.length)])
+      );
+      if (!confirmed) return;
       state.queue =
         platformKey === "chatgpt"
           ? shuffleConversations(selectedConversations)
           : selectedConversations;
-      if (state.queue.length === 0) return;
       btnDelete.disabled = true;
       setListLocked(true);
       log(t("deleting", [String(state.queue.length)]));

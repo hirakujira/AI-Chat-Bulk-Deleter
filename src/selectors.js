@@ -66,6 +66,25 @@
         confirmDeleteButton: null,
       },
     },
+    grok: {
+      label: "Grok",
+      origin: "https://grok.com",
+      // Conversation id from /c/<uuid>.
+      hrefPattern: /^\/c\/([0-9a-zA-Z-]+)/,
+      // Grok deletes immediately from the options menu and does not show a
+      // confirmation dialog.
+      requiresDeleteConfirmation: false,
+      // Radix opens the dropdown on pointerdown rather than click.
+      optionsTriggerActivation: "pointerdown",
+      selectors: {
+        conversationLink: 'li[data-sidebar="menu-item"] a[href^="/c/"]',
+        optionsTrigger: 'button[aria-haspopup="menu"]',
+        menu: '[role="menu"]',
+        deleteMenuItem: '[role="menuitem"]',
+        confirmDialog: null,
+        confirmDeleteButton: null,
+      },
+    },
   };
 
   // Map a hostname to a platform key, or null when unsupported.
@@ -81,6 +100,9 @@
     }
     if (hostname.endsWith("claude.ai")) {
       return "claude";
+    }
+    if (hostname === "grok.com") {
+      return "grok";
     }
     return null;
   }

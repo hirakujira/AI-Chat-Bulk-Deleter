@@ -1,12 +1,16 @@
 {
   "appName": { "message": "AI チャット一括削除ツール" },
-  "appDesc": { "message": "ChatGPT、Gemini、Claude のウェブ画面で会話を一括削除します。プレビューと選択に対応。" },
+  "appDesc": { "message": "ChatGPT、Gemini、Claude、Grok のウェブ画面で会話を一括削除します。プレビューと選択に対応。" },
   "scan": { "message": "スキャン" },
   "selectAll": { "message": "すべて選択" },
   "deleteSelected": { "message": "選択した項目を削除" },
   "deleteSelectedCount": {
     "message": "選択した項目を削除（$count$）",
     "placeholders": { "count": { "content": "$1" } }
+  },
+  "confirmBatchDelete": {
+    "message": "$platform$ から選択した $count$ 件の会話を完全に削除しますか？この操作は取り消せません。",
+    "placeholders": { "platform": { "content": "$1" }, "count": { "content": "$2" } }
   },
   "close": { "message": "閉じる" },
   "noScanned": { "message": "会話はまだスキャンされていません。" },
