@@ -30,10 +30,12 @@
     gemini: {
       label: "Gemini",
       origin: "https://gemini.google.com",
-      // Conversation id from /app/<id>.
-      hrefPattern: /^\/app\/([0-9a-zA-Z_-]+)/,
+      // Conversation id from /app/<id> or the account-scoped /u/<n>/app/<id>.
+      hrefPattern: /^\/(?:u\/[^/]+\/)?app\/([0-9a-zA-Z_-]+)/,
       selectors: {
-        conversationLink: '[data-test-id="conversation"], a[href^="/app/"]',
+        // Newer sidebar entries place the account-scoped chat URL on a child
+        // link, while the data-test-id remains on its gem-nav-list-item host.
+        conversationLink: '[data-test-id="conversation"] a[href*="/app/"], a[href^="/app/"]',
         optionsTrigger: 'button:has(mat-icon[fonticon="more_vert"]), button[aria-haspopup="menu"]',
         menu: '[role="menu"]',
         deleteMenuItem: '[role="menuitem"], button[data-test-id="delete-button"]',

@@ -46,7 +46,15 @@ test("parseConversationId handles Gemini hrefs", () => {
     parseConversationId("https://gemini.google.com/app/abcDEF123", "gemini"),
     "abcDEF123"
   );
+  assert.strictEqual(
+    parseConversationId("/u/3/app/507a228289eedd3f?pageId=none", "gemini"),
+    "507a228289eedd3f"
+  );
   assert.strictEqual(parseConversationId("/app", "gemini"), null);
+});
+
+test("Gemini config finds account-scoped sidebar conversation links", () => {
+  assert.match(PLATFORMS.gemini.selectors.conversationLink, /data-test-id="conversation".*a/);
 });
 
 test("parseConversationId handles Claude hrefs", () => {
