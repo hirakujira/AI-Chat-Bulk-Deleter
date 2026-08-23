@@ -50,13 +50,12 @@
       // Conversation id from /chat/<id>.
       hrefPattern: /^\/chat\/([0-9a-zA-Z-]+)/,
       selectors: {
-        // Sidebar rows (data-dd-action-name) and the /recents "all chats"
-        // table rows (data-primary, href-scoped so it excludes other tables
-        // e.g. Projects) both list conversations; unscoped a[href^="/chat/"]
-        // also matches unrelated /chat/ links elsewhere on the page.
+        // Claude's current sidebar uses data-row-main-button instead of
+        // data-dd-action-name. Keep previous sidebar and /recents selectors
+        // for users on gradually rolled-out layouts.
         conversationLink:
-          'a[data-dd-action-name="sidebar-chat-item"], a[data-primary="true"][href^="/chat/"]',
-        optionsTrigger: 'button[aria-haspopup="menu"]',
+          'a[data-row-main-button][href^="/chat/"], a[data-dd-action-name="sidebar-chat-item"], a[data-primary="true"][href^="/chat/"]',
+        optionsTrigger: 'button[data-row-action][aria-haspopup="menu"], button[aria-haspopup="menu"]',
         menu: '[role="menu"]',
         deleteMenuItem: '[data-testid="delete-chat-trigger"]',
         // Claude's confirm dialog is role="alertdialog", not "dialog".

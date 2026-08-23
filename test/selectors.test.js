@@ -58,6 +58,13 @@ test("parseConversationId handles Claude hrefs", () => {
   assert.strictEqual(parseConversationId("/new", "claude"), null);
 });
 
+test("Claude config supports the current sidebar row controls", () => {
+  const claude = PLATFORMS.claude;
+  assert.match(claude.selectors.conversationLink, /data-row-main-button/);
+  assert.match(claude.selectors.conversationLink, /href\^="\/chat\/"/);
+  assert.match(claude.selectors.optionsTrigger, /data-row-action/);
+});
+
 test("parseConversationId handles Grok hrefs", () => {
   assert.strictEqual(
     parseConversationId("/c/8c648162-8027-44be-ae3d-5816feba85d4", "grok"),
