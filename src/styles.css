@@ -158,9 +158,17 @@
   cursor: pointer;
 }
 
-#cgbd-panel .cgbd-select-all-toggle {
+#cgbd-panel input[type="checkbox"] {
+  /* Host pages reset form controls; restore the browser's checkmark. */
+  all: revert;
+  appearance: auto;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
   margin: 0;
   accent-color: var(--cgbd-accent);
+  cursor: pointer;
 }
 
 #cgbd-panel .cgbd-list {
@@ -191,12 +199,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-#cgbd-panel .cgbd-check {
-  flex: 0 0 auto;
-  margin: 0;
-  accent-color: var(--cgbd-accent);
 }
 
 #cgbd-panel .cgbd-log {

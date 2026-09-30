@@ -58,12 +58,19 @@
     return Array.from(root.querySelectorAll(selector));
   }
 
-  // Dispatch a full pointer/mouse sequence. Synthetic .click() alone does not
-  // reliably activate Angular Material (Gemini) buttons.
+  // Emit press/release before click so controls receive a complete gesture.
   function realClick(el) {
-    if (!el) return false;
+    if (!el || isDisabled(el) || !el.isConnected) return false;
     if (typeof el.focus === "function") {
-      el.focus();
+      el.focus({ preventScroll: true });
+    }
+    const EventClass = typeof PointerEvent === "function" ? PointerEvent : MouseEvent;
+    for (const type of ["pointerdown", "mousedown", "pointerup", "mouseup"]) {
+      el.dispatchEvent(new (type.startsWith("pointer") ? EventClass : MouseEvent)(type, {
+        bubbles: true, cancelable: true, composed: true, button: 0,
+        buttons: type.endsWith("down") ? 1 : 0,
+        pointerId: 1, pointerType: "mouse", isPrimary: true, view: window,
+      }));
     }
     if (typeof el.click === "function") {
       el.click();
@@ -113,7 +120,14 @@
 
   // Poll for an element until it appears or the timeout elapses.
   function waitFor(selector, timeout = 3000, interval = 100) {
-    return pollUntil(() => $(selector), timeout, interval);
+    return pollUntil(() => $$(selector).find(isActiveOverlay), timeout, interval);
+  }
+
+  function isActiveOverlay(el) {
+    if (!el || !el.isConnected || el.getAttribute("data-state") === "closed") return false;
+    const style = getComputedStyle(el);
+    return !el.hidden && style.display !== "none" && style.visibility !== "hidden" &&
+      el.getClientRects().length > 0;
   }
 
   // Buttons can stay disabled for a moment while a dialog's open transition
@@ -164,7 +178,9 @@
 
   function findOptionsTrigger(linkEl) {
     // The options button usually lives in the same row as the link.
-    const row =
+    const row = SELECTORS.conversationRow
+      ? linkEl.closest(SELECTORS.conversationRow)
+      :
       linkEl.closest('[data-test-id="conversation"]') ||
       linkEl.closest("li") ||
       linkEl.closest("tr") ||
@@ -173,7 +189,7 @@
     // Gemini reveals the actions button only on hover/focus.
     row.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
     row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    return row.querySelector(SELECTORS.optionsTrigger) || row;
+    return row.querySelector(SELECTORS.optionsTrigger) || (platformKey === "chatgpt" ? null : row);
   }
 
   async function clickDeleteMenuItem() {
@@ -184,8 +200,9 @@
     // Prefer a platform-specific delete selector. Platforms with only generic
     // menu item selectors keep the delete action as the last matching item.
     await humanActionDelay();
-    realClick(items[items.length - 1]);
-    return true;
+    const item = items[items.length - 1];
+    await waitUntilEnabled(item);
+    return realClick(item);
   }
 
   async function waitForConversationRemoval(id) {
@@ -201,7 +218,7 @@
     let confirm = SELECTORS.confirmDeleteButton
       ? await pollUntil(() => $(SELECTORS.confirmDeleteButton, dialog))
       : null;
-    if (!confirm) {
+    if (!confirm && platformKey !== "chatgpt") {
       // Fall back to the dialog's last button (Cancel left, Delete right).
       const buttons = $$("button", dialog);
       confirm = buttons[buttons.length - 1];
@@ -212,14 +229,29 @@
     await waitUntilEnabled(confirm);
     if (isDisabled(confirm)) return { ok: false, reason: "confirm button remained disabled" };
     await humanActionDelay();
-    realClick(confirm);
-    if (platformKey !== "chatgpt" || (await waitForConversationRemoval(id))) {
-      return { ok: true };
+    if (!realClick(confirm)) return { ok: false, reason: "confirm button no longer actionable" };
+    const closed = await pollUntil(
+      () => !isActiveOverlay(dialog), CHATGPT_REMOVAL_TIMEOUT_MS
+    );
+    if (!closed) return { ok: false, reason: "confirm dialog remained open" };
+    if (platformKey === "chatgpt") {
+      if (!(await waitForConversationRemoval(id))) {
+        return { ok: false, reason: "conversation remained after confirmation" };
+      }
+      const overlaysClosed = await pollUntil(
+        () => ![...$$(SELECTORS.menu), ...$$(SELECTORS.confirmDialog)].some(isActiveOverlay),
+        CHATGPT_REMOVAL_TIMEOUT_MS
+      );
+      if (!overlaysClosed) return { ok: false, reason: "delete overlay remained open" };
     }
-    return { ok: false, reason: "conversation remained after confirmation" };
+    return { ok: true };
   }
 
   async function deleteOne(conv) {
+    if (platformKey === "chatgpt" &&
+        [...$$(SELECTORS.menu), ...$$(SELECTORS.confirmDialog)].some(isActiveOverlay)) {
+      return { id: conv.id, status: "failed", reason: "previous overlay still open" };
+    }
     // Re-locate the link, it may have re-rendered after previous deletions.
     const link = findLink(conv.id);
     if (!link) {
@@ -274,9 +306,9 @@
         conv.title || conv.id,
       ]);
       log(`${line}${res.reason ? ` (${res.reason})` : ""}`);
-      // ChatGPT waits for the sidebar entry to disappear before reporting a
-      // deletion, so a successful result can proceed immediately.
-      if (i < state.queue.length - 1 && !(platformKey === "chatgpt" && res.status === "deleted")) {
+      // A failed step may leave a modal open. Do not act on another row.
+      if (platformKey === "chatgpt" && res.status === "failed") break;
+      if (i < state.queue.length - 1) {
         await sleep(nextDeleteDelay());
       }
     }

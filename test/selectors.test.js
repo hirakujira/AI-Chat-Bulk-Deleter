@@ -25,10 +25,16 @@ test("detectPlatform maps known hosts", () => {
 });
 
 test("ChatGPT targets the dedicated delete menu item", () => {
-  assert.strictEqual(
-    PLATFORMS.chatgpt.selectors.deleteMenuItem,
-    '[data-testid="delete-chat-menu-item"]'
-  );
+  assert.strictEqual(PLATFORMS.chatgpt.selectors.deleteMenuItem, '[role="menuitem"].text-danger');
+});
+
+test("ChatGPT supports Slate sidebar rows and the submit confirmation action", () => {
+  const chatgpt = PLATFORMS.chatgpt;
+  assert.strictEqual(chatgpt.selectors.conversationLink, '[data-sidebar-chatgpt-conversation-key] a[href^="/c/"]');
+  assert.strictEqual(chatgpt.selectors.conversationRow, '[data-sidebar-chatgpt-conversation-key]');
+  assert.strictEqual(chatgpt.optionsTriggerActivation, 'pointerdown');
+  assert.strictEqual(chatgpt.selectors.optionsTrigger, 'button[aria-haspopup="menu"]');
+  assert.strictEqual(chatgpt.selectors.confirmDeleteButton, 'button[type="submit"]');
 });
 
 test("parseConversationId handles ChatGPT hrefs", () => {

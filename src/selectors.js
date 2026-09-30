@@ -17,14 +17,18 @@
       origin: "https://chatgpt.com",
       // Conversation id from /c/<id>.
       hrefPattern: /^\/c\/([0-9a-zA-Z-]+)/,
+      optionsTriggerActivation: "pointerdown",
       selectors: {
-        conversationLink: 'nav a[href^="/c/"]',
-        optionsTrigger: 'button[aria-haspopup="menu"], button[data-testid$="-options"]',
+        // Slate's sidebar is no longer inside nav. Scope links to its
+        // conversation rows so links in messages are never scanned.
+        conversationLink: '[data-sidebar-chatgpt-conversation-key] a[href^="/c/"]',
+        conversationRow: '[data-sidebar-chatgpt-conversation-key]',
+        optionsTrigger: 'button[aria-haspopup="menu"]',
         menu: '[role="menu"]',
-        deleteMenuItem: '[data-testid="delete-chat-menu-item"]',
+        deleteMenuItem: '[role="menuitem"].text-danger',
         confirmDialog: '[role="dialog"]',
         // Language-independent confirm button for "Delete chat?" dialog.
-        confirmDeleteButton: '[data-testid="delete-conversation-confirm-button"]',
+        confirmDeleteButton: 'button[type="submit"]',
       },
     },
     gemini: {
